@@ -143,7 +143,7 @@ curl -X POST \
 -H "Authorization: Bearer ACCESS_TOKEN" \
 -F "file=@example.pdf" \
 -F "project=1" \
-https://your-app-name.onrender.com/api/attachments/
+https://crm-backend-b0bv.onrender.com/api/attachments/
 ```
 
 **Response**:
