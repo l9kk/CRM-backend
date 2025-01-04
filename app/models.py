@@ -1,23 +1,25 @@
 from django.db import models
 from django.utils import timezone
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.name
 
+
 class ProjectStatus(models.TextChoices):
     NEW = 'NEW', 'New'
     ACCEPTED = 'ACCEPTED', 'Accepted'
     REJECTED = 'REJECTED', 'Rejected'
 
+
 class Project(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
+    budget = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    deadline = models.DateField(default=timezone.now)
 
     # Public user info
     sender_name = models.CharField(max_length=150)
@@ -38,6 +40,7 @@ class Project(models.Model):
     def __str__(self):
         return f"{self.title} ({self.status})"
 
+
 class Attachment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='attachments')
     file = models.FileField(upload_to='attachments/')
@@ -46,11 +49,12 @@ class Attachment(models.Model):
     def __str__(self):
         return f"Attachment #{self.id} for {self.project.title}"
 
+
 class ProjectComment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='comments')
     comment_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    author_name = models.CharField(max_length=150, default='Admin')
+    author_name = models.CharField(max_length=150)
 
     def __str__(self):
         return f"Comment by {self.author_name} on {self.project.title}"

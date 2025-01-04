@@ -13,11 +13,6 @@ from .serializers import (
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    """
-    Handles CRUD for Projects:
-    - Public can POST (create) new projects.
-    - Admin users (JWT) can list, retrieve, accept/reject, etc.
-    """
     queryset = Project.objects.all().order_by('-created_at')
 
     def get_serializer_class(self):
@@ -27,18 +22,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            # Anyone can submit a project
             return [AllowAny()]
-        else:
-            # For list/retrieve/accept/reject - admin only
-            return [IsAdminUser()]
+        return [IsAdminUser()]
 
     def perform_create(self, serializer):
-        """
-        Called when a new project is submitted by the public.
-        """
-        project = serializer.save()  # status defaults to 'NEW'
-        # Optionally send an email confirmation:
+        project = serializer.save()
         send_mail(
             'Thank you for your project proposal',
             f"We received your proposal '{project.title}'. Our team will review it soon.",
@@ -49,13 +37,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='accept')
     def accept_project(self, request, pk=None):
-        """
-        Accepts the project (admin only).
-        """
         project = get_object_or_404(Project, pk=pk)
         project.status = ProjectStatus.ACCEPTED
         project.save(update_fields=['status'])
-        # Optionally notify the user
+        ProjectComment.objects.create(
+            project=project,
+            comment_text=f"Project '{project.title}' was accepted.",
+            author_name=request.user.username
+        )
         send_mail(
             'Project Accepted',
             f"Your project '{project.title}' has been accepted.",
@@ -67,13 +56,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='reject')
     def reject_project(self, request, pk=None):
-        """
-        Rejects the project (admin only).
-        """
         project = get_object_or_404(Project, pk=pk)
         project.status = ProjectStatus.REJECTED
         project.save(update_fields=['status'])
-        # Optionally notify the user
+        ProjectComment.objects.create(
+            project=project,
+            comment_text=f"Project '{project.title}' was rejected.",
+            author_name=request.user.username
+        )
         send_mail(
             'Project Rejected',
             f"Your project '{project.title}' has been rejected.",
@@ -82,7 +72,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
             fail_silently=True
         )
         return Response({'detail': 'Project rejected', 'status': project.status})
-
 
 class AttachmentViewSet(viewsets.ModelViewSet):
     """
