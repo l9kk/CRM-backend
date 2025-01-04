@@ -1,11 +1,5 @@
-import os
-
-from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
-from django.http import Http404
-from django.http import FileResponse
 from rest_framework import viewsets
-from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
