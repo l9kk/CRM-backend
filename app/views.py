@@ -96,7 +96,7 @@ class AttachmentViewSet(viewsets.ModelViewSet):
     """
     queryset = Attachment.objects.all()
     serializer_class = AttachmentSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
 
 class ProjectCommentViewSet(viewsets.ModelViewSet):
@@ -121,7 +121,7 @@ class AttachmentDownloadView(APIView):
     Class-based view to securely serve an attachment file if the user is an admin/staff.
     Handles non-ASCII filenames by encoding them properly.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, attachment_id):
         """
