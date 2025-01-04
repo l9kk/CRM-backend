@@ -2,3 +2,6 @@ django
 djangorestframework
 djangorestframework-simplejwt
 psycopg2
+gunicorn
+dj-database-url
+whitenoise
