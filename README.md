@@ -5,7 +5,7 @@ This document describes the API endpoints for the CRM system backend. The API us
 ## Base URL
 All API requests should be sent to the following base URL:
 ```
-https://your-app-name.onrender.com/api/
+https://crm-backend-b0bv.onrender.com/api/
 ```
 
 ---
