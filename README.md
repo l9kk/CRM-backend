@@ -1,4 +1,4 @@
-# Backend API Documentation for Frontend Integration
+# Backend API Documentation
 
 This document provides the necessary details for integrating the backend API with your React frontend application.
 The base URL for the deployed API is:
