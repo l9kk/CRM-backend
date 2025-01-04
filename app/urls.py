@@ -1,8 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProjectViewSet, AttachmentViewSet, ProjectCommentViewSet
-from django.conf import settings
-from django.conf.urls.static import static
+from .views import (
+    ProjectViewSet,
+    AttachmentViewSet,
+    ProjectCommentViewSet,
+    AttachmentDownloadView
+)
 
 router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='projects')
@@ -11,4 +14,5 @@ router.register(r'comments', ProjectCommentViewSet, basename='comments')
 
 urlpatterns = [
     path('', include(router.urls)),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('attachments/<int:attachment_id>/download/', AttachmentDownloadView.as_view(), name='attachment_download'),
+]

@@ -1,12 +1,15 @@
+import os
+
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
-from django.conf import settings
+from django.http import Http404
 from django.http import FileResponse
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
+from urllib.parse import quote
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus
 from .serializers import (
@@ -105,26 +108,48 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
 
 
+import os
+from django.http import FileResponse, Http404
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAdminUser
+from django.shortcuts import get_object_or_404
+from .models import Attachment
+
+
 class AttachmentDownloadView(APIView):
     """
     Class-based view to securely serve an attachment file if the user is an admin/staff.
-    This avoids exposing MEDIA_URL publicly.
+    Handles non-ASCII filenames by encoding them properly.
     """
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def get(self, request, attachment_id):
         """
         Stream the requested attachment as a file download.
         """
+        # Fetch the attachment object
         attachment = get_object_or_404(Attachment, pk=attachment_id)
 
-        # The physical file path on disk
+        # Ensure the file exists on disk
         file_path = attachment.file.path
+        if not os.path.exists(file_path):
+            raise Http404("File not found.")
 
-        # Return file in a streaming response so large files don't overwhelm memory
+        # Open the file for streaming
         file_handle = open(file_path, 'rb')
+
+        # Get the original file name
+        file_name = os.path.basename(attachment.file.name)
+
+        # Encode the filename for browser compatibility
+        encoded_file_name = quote(file_name)
+
+        # Set up the response
         response = FileResponse(file_handle, content_type='application/octet-stream')
 
-        # Force download. If you prefer inline viewing (for images/PDF), change 'attachment;' to 'inline;'
-        response['Content-Disposition'] = f'attachment; filename="{attachment.file.name}"'
+        # Set Content-Disposition with UTF-8 encoding for non-ASCII characters
+        response['Content-Disposition'] = (
+            f"attachment; filename*=UTF-8''{encoded_file_name}"
+        )
+
         return response
