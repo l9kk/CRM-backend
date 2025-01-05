@@ -128,4 +128,24 @@ https://crm-backend-b0bv.onrender.com/api/
   }
   ```
 
----
+### 4. **Categories**
+#### **Get All Categories**
+- **URL:** `GET /categories/`
+- **Response Example:**
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Web Development"
+    },
+    {
+      "id": 2,
+      "name": "Mobile Development"
+    },
+    {
+      "id": 3,
+      "name": "Data Science"
+    }
+  ]
+  ```
+
