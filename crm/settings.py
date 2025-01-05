@@ -167,14 +167,26 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'file': {
+            'level': 'INFO',  # Set the logging level
+            'class': 'logging.FileHandler',
+            'filename': 'activity.log',  # Logs will be written to this file
+        },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'file'],  # Log both to console and file
         'level': 'WARNING',
     },
-    'django': {
-        'handlers': ['console'],
-        'level': 'INFO',
-        'propagate': False,
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],  # Add file handler here
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'app': {  # Logger specific to your app
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }

@@ -1,3 +1,4 @@
+import logging
 from django.core.mail import send_mail
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -11,6 +12,8 @@ from .serializers import (
     AttachmentSerializer, ProjectCommentSerializer, CategorySerializer
 )
 
+# Configure logger for the app
+logger = logging.getLogger('app')
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by('-created_at')
@@ -27,6 +30,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         project = serializer.save()
+        logger.info(f"Project '{project.title}' created by {project.sender_name}.")
         send_mail(
             'Thank you for your project proposal',
             f"We received your proposal '{project.title}'. Our team will review it soon.",
@@ -45,6 +49,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             comment_text=f"Project '{project.title}' was accepted.",
             author_name=request.user.username
         )
+        logger.info(f"Project '{project.title}' accepted by {request.user.username}.")
         send_mail(
             'Project Accepted',
             f"Your project '{project.title}' has been accepted.",
@@ -64,6 +69,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             comment_text=f"Project '{project.title}' was rejected.",
             author_name=request.user.username
         )
+        logger.info(f"Project '{project.title}' rejected by {request.user.username}.")
         send_mail(
             'Project Rejected',
             f"Your project '{project.title}' has been rejected.",
@@ -81,6 +87,9 @@ class AttachmentViewSet(viewsets.ModelViewSet):
     serializer_class = AttachmentSerializer
     permission_classes = [AllowAny]
 
+    def perform_create(self, serializer):
+        attachment = serializer.save()
+        logger.info(f"Attachment '{attachment.file.name}' uploaded for project '{attachment.project.title}'.")
 
 class ProjectCommentViewSet(viewsets.ModelViewSet):
     """
@@ -90,6 +99,9 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectCommentSerializer
     permission_classes = [IsAdminUser]
 
+    def perform_create(self, serializer):
+        comment = serializer.save()
+        logger.info(f"Comment added to project '{comment.project.title}' by {comment.author_name}.")
 
 import os
 from django.http import FileResponse, Http404
@@ -97,7 +109,6 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
 from django.shortcuts import get_object_or_404
 from .models import Attachment
-
 
 class AttachmentDownloadView(APIView):
     """
@@ -107,15 +118,13 @@ class AttachmentDownloadView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request, attachment_id):
-        """
-        Stream the requested attachment as a file download.
-        """
         # Fetch the attachment object
         attachment = get_object_or_404(Attachment, pk=attachment_id)
 
         # Ensure the file exists on disk
         file_path = attachment.file.path
         if not os.path.exists(file_path):
+            logger.error(f"File not found: {file_path}")
             raise Http404("File not found.")
 
         # Open the file for streaming
@@ -135,6 +144,7 @@ class AttachmentDownloadView(APIView):
             f"attachment; filename*=UTF-8''{encoded_file_name}"
         )
 
+        logger.info(f"File '{file_name}' downloaded by {request.user.username}.")
         return response
 
 class CategoryListView(APIView):
@@ -146,4 +156,5 @@ class CategoryListView(APIView):
     def get(self, request):
         categories = Category.objects.all()  # Fetch all categories
         serializer = CategorySerializer(categories, many=True)  # Serialize them
-        return Response(serializer.data)  # Return the serialized data
+        logger.info("Categories list retrieved.")
+        return Response(serializer.data)
