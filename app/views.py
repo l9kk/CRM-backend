@@ -5,10 +5,10 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from urllib.parse import quote
 
-from .models import Project, Attachment, ProjectComment, ProjectStatus
+from .models import Project, Attachment, ProjectComment, ProjectStatus, Category
 from .serializers import (
     ProjectSerializer, ProjectCreateSerializer,
-    AttachmentSerializer, ProjectCommentSerializer
+    AttachmentSerializer, ProjectCommentSerializer, CategorySerializer
 )
 
 
@@ -136,3 +136,14 @@ class AttachmentDownloadView(APIView):
         )
 
         return response
+
+class CategoryListView(APIView):
+    """
+    View to list all available categories.
+    """
+    permission_classes = [AllowAny]  # Anyone can access this endpoint
+
+    def get(self, request):
+        categories = Category.objects.all()  # Fetch all categories
+        serializer = CategorySerializer(categories, many=True)  # Serialize them
+        return Response(serializer.data)  # Return the serialized data
