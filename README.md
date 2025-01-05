@@ -149,3 +149,34 @@ https://crm-backend-b0bv.onrender.com/api/
   ]
   ```
 
+### 5. **Search and Filters for Projects**
+#### **Search and Filter Projects**
+- **URL:** `GET /projects/`
+- **Query Parameters:**
+  - **search:** Search projects by `title` or `description` (e.g., `search=CRM`).
+  - **status:** Filter projects by status (e.g., `status=NEW`).
+  - **budget__gte:** Minimum budget (e.g., `budget__gte=1000`).
+  - **budget__lte:** Maximum budget (e.g., `budget__lte=5000`).
+  - **category:** Filter by category ID (e.g., `category=1`).
+  - **ordering:** Sort by fields (e.g., `ordering=budget` or `ordering=-budget`).
+- **Headers:** Requires authentication for admin-only views.
+- **Response Example:**
+  ```json
+  [
+    {
+      "id": 1,
+      "title": "New CRM System",
+      "description": "A CRM system to manage customer relations.",
+      "budget": "5000.00",
+      "deadline": "2025-02-01",
+      "sender_name": "John Doe",
+      "contact_email": "john@example.com",
+      "category": 1,
+      "status": "NEW",
+      "created_at": "2025-01-05T12:00:00Z",
+      "updated_at": "2025-01-05T12:00:00Z",
+      "attachments": [],
+      "comments": []
+    }
+  ]
+  ```

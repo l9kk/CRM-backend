@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from urllib.parse import quote
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category
 from .serializers import (
@@ -15,8 +17,25 @@ from .serializers import (
 # Configure logger for the app
 logger = logging.getLogger('app')
 
+
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by('-created_at')
+
+    # Add filter backends for filtering, searching, and ordering
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    # Define the fields to filter on
+    filterset_fields = {
+        'status': ['exact'],  # Filter by exact match on status
+        'category__name': ['icontains'],  # Case-insensitive filter on category name
+        'budget': ['gte', 'lte'],  # Filter projects by budget range
+    }
+
+    # Define fields to enable search
+    search_fields = ['title', 'description', 'sender_name']
+
+    # Define fields to enable ordering
+    ordering_fields = ['budget', 'created_at', 'updated_at']
 
     def get_serializer_class(self):
         if self.action == 'create':
