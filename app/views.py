@@ -134,7 +134,7 @@ class AttachmentDownloadView(APIView):
     Class-based view to securely serve an attachment file if the user is an admin/staff.
     Handles non-ASCII filenames by encoding them properly.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, attachment_id):
         # Fetch the attachment object
