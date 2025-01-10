@@ -1,9 +1,7 @@
 import logging
 
-import requests
 from django.core.mail import send_mail
-from django.http import StreamingHttpResponse, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -123,39 +121,30 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
 
 class AttachmentDownloadView(APIView):
     """
-    Class-based view to stream the Cloudinary file to the user
-    and force it to download rather than redirecting.
+    Class-based view to force-download a Cloudinary file by inserting
+    the 'fl_attachment' parameter into the URL.
     """
     permission_classes = [AllowAny]
 
     def get(self, request, attachment_id):
-        # 1. Fetch the attachment object
         attachment = get_object_or_404(Attachment, pk=attachment_id)
-        file_url = attachment.file.url  # Cloudinary URL
 
-        # 2. Optional logging
-        user_info = request.user.username if request.user.is_authenticated else 'Anonymous'
-        logger.info(f"File '{attachment.file.name}' requested by {user_info}.")
+        # Original Cloudinary URL
+        original_url = attachment.file.url  # e.g. https://res.cloudinary.com/.../upload/v1/...
 
-        # 3. Download the file from Cloudinary via requests
-        try:
-            cloud_response = requests.get(file_url, stream=True)
-            cloud_response.raise_for_status()  # Raise HTTPError for bad responses
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching file from Cloudinary: {file_url} - {e}")
-            raise Http404("File not found on Cloudinary.")
+        # Insert "fl_attachment" after "/upload/" to force download:
+        # For example, transforms:
+        #   https://res.cloudinary.com/.../upload/v1/filename.jpg
+        # into
+        #   https://res.cloudinary.com/.../upload/fl_attachment/v1/filename.jpg
+        forced_download_url = original_url.replace("/upload/", "/upload/fl_attachment/")
 
-        # 4. Prepare a streaming response
-        filename = attachment.file.name.split('/')[-1]  # Extract just the file name
-        response = StreamingHttpResponse(
-            cloud_response.iter_content(chunk_size=8192),
-            content_type='application/octet-stream'
-        )
+        # (Optional) If the path is "/raw/upload/", do the same replacement:
+        forced_download_url = forced_download_url.replace("/raw/upload/", "/raw/upload/fl_attachment/")
 
-        # 5. Force the browser to download the file
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        # Redirect to the forced download URL
+        return redirect(forced_download_url)
 
-        return response
 
 class CategoryListView(APIView):
     """
