@@ -1,12 +1,17 @@
 import logging
+import os
+from urllib.parse import quote
+
 from django.core.mail import send_mail
+from django.http import FileResponse, Http404
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
-from urllib.parse import quote
-from rest_framework.filters import SearchFilter, OrderingFilter
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category
 from .serializers import (
@@ -121,13 +126,6 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         comment = serializer.save()
         logger.info(f"Comment added to project '{comment.project.title}' by {comment.author_name}.")
-
-import os
-from django.http import FileResponse, Http404
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAdminUser
-from django.shortcuts import get_object_or_404
-from .models import Attachment
 
 class AttachmentDownloadView(APIView):
     """
