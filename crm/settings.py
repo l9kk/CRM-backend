@@ -152,7 +152,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Or, if you want to store your static assets within a separate folder
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# settings.py
 MEDIA_ROOT = os.path.join(BASE_DIR, 'private_media')  # for example
 MEDIA_URL = '/private-media/'  # Not actually served publicly
 
