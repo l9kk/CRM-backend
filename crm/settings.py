@@ -50,9 +50,9 @@ INSTALLED_APPS = [
 ]
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dayjtvyp9',
-    'API_KEY': '788823399527987',
-    'API_SECRET': 'ptsMtmNVas42TrvfWpwls5zZAuk',
+    'CLOUD_NAME': config('CLOUD_NAME'),
+    'API_KEY': config('API_KEY'),
+    'API_SECRET': config('API_SECRET'),
 }
 
 CLOUDINARY_URL = config('CLOUDINARY_URL')
