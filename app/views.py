@@ -1,10 +1,6 @@
 import logging
-import os
-from urllib.parse import quote
-
 from django.core.mail import send_mail
-from django.http import FileResponse, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -19,27 +15,19 @@ from .serializers import (
     AttachmentSerializer, ProjectCommentSerializer, CategorySerializer
 )
 
-# Configure logger for the app
 logger = logging.getLogger('app')
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by('-created_at')
 
-    # Add filter backends for filtering, searching, and ordering
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-
-    # Define the fields to filter on
     filterset_fields = {
-        'status': ['exact'],  # Filter by exact match on status
-        'category__name': ['icontains'],  # Case-insensitive filter on category name
-        'budget': ['gte', 'lte'],  # Filter projects by budget range
+        'status': ['exact'],
+        'category__name': ['icontains'],
+        'budget': ['gte', 'lte'],
     }
-
-    # Define fields to enable search
     search_fields = ['title', 'description', 'sender_name']
-
-    # Define fields to enable ordering
     ordering_fields = ['budget', 'created_at', 'updated_at']
 
     def get_serializer_class(self):
@@ -103,6 +91,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         )
         return Response({'detail': 'Project rejected', 'status': project.status})
 
+
 class AttachmentViewSet(viewsets.ModelViewSet):
     """
     Admin-only CRUD on attachments.
@@ -114,6 +103,7 @@ class AttachmentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         attachment = serializer.save()
         logger.info(f"Attachment '{attachment.file.name}' uploaded for project '{attachment.project.title}'.")
+
 
 class ProjectCommentViewSet(viewsets.ModelViewSet):
     """
@@ -127,51 +117,33 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
         comment = serializer.save()
         logger.info(f"Comment added to project '{comment.project.title}' by {comment.author_name}.")
 
+
 class AttachmentDownloadView(APIView):
     """
-    Class-based view to securely serve an attachment file if the user is an admin/staff.
-    Handles non-ASCII filenames by encoding them properly.
+    Class-based view to redirect users directly to the
+    Cloudinary-hosted attachment.
     """
     permission_classes = [AllowAny]
 
     def get(self, request, attachment_id):
-        # Fetch the attachment object
         attachment = get_object_or_404(Attachment, pk=attachment_id)
+        file_url = attachment.file.url  # Cloudinary URL
 
-        # Ensure the file exists on disk
-        file_path = attachment.file.path
-        if not os.path.exists(file_path):
-            logger.error(f"File not found: {file_path}")
-            raise Http404("File not found.")
+        user_info = request.user.username if request.user.is_authenticated else 'Anonymous'
+        logger.info(f"File '{attachment.file.name}' requested by {user_info}.")
 
-        # Open the file for streaming
-        file_handle = open(file_path, 'rb')
+        # Redirect the user directly to the Cloudinary URL
+        return redirect(file_url)
 
-        # Get the original file name
-        file_name = os.path.basename(attachment.file.name)
-
-        # Encode the filename for browser compatibility
-        encoded_file_name = quote(file_name)
-
-        # Set up the response
-        response = FileResponse(file_handle, content_type='application/octet-stream')
-
-        # Set Content-Disposition with UTF-8 encoding for non-ASCII characters
-        response['Content-Disposition'] = (
-            f"attachment; filename*=UTF-8''{encoded_file_name}"
-        )
-
-        logger.info(f"File '{file_name}' downloaded by {request.user.username}.")
-        return response
 
 class CategoryListView(APIView):
     """
     View to list all available categories.
     """
-    permission_classes = [AllowAny]  # Anyone can access this endpoint
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        categories = Category.objects.all()  # Fetch all categories
-        serializer = CategorySerializer(categories, many=True)  # Serialize them
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
         logger.info("Categories list retrieved.")
         return Response(serializer.data)

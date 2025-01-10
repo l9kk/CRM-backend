@@ -4,7 +4,10 @@ from .models import Project, Attachment, ProjectComment, Category
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
-    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all(), required=True)
+    project = serializers.PrimaryKeyRelatedField(
+        queryset=Project.objects.all(),
+        required=True
+    )
 
     class Meta:
         model = Attachment
@@ -13,10 +16,15 @@ class AttachmentSerializer(serializers.ModelSerializer):
     def validate_file(self, value):
         max_file_size = 5 * 1024 * 1024  # 5 MB
         allowed_file_types = ['image/jpeg', 'image/png', 'application/pdf']
+
         if value.size > max_file_size:
             raise serializers.ValidationError("File size must not exceed 5MB.")
-        if value.content_type not in allowed_file_types:
+
+        # If you're using Cloudinary and there's no local content_type, this may be empty.
+        file_type = getattr(value, 'content_type', None)
+        if not file_type or file_type not in allowed_file_types:
             raise serializers.ValidationError("Invalid file type. Allowed types: JPEG, PNG, PDF.")
+
         return value
 
 
@@ -47,7 +55,9 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class ProjectCreateSerializer(serializers.ModelSerializer):
-    """Used when public users create a new project proposal."""
+    """
+    Used when public users create a new project proposal.
+    """
     deadline = serializers.DateField()
 
     class Meta:
@@ -62,4 +72,3 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         if value < timezone.now().date():
             raise serializers.ValidationError("The deadline cannot be in the past.")
         return value
-

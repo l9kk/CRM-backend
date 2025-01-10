@@ -45,7 +45,17 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_filters',
+    'cloudinary',
+    'cloudinary_storage',
 ]
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dayjtvyp9',
+    'API_KEY': '788823399527987',
+    'API_SECRET': 'ptsMtmNVas42TrvfWpwls5zZAuk',
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 REST_FRAMEWORK = {
@@ -153,10 +163,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Or, if you want to store your static assets within a separate folder
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-MEDIA_ROOT = os.path.join(BASE_DIR, 'private_media')  # for example
-MEDIA_URL = '/private-media/'  # Not actually served publicly
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
