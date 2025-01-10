@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
 class Category(models.Model):
@@ -43,7 +44,7 @@ class Project(models.Model):
 
 class Attachment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='attachments/')
+    file = models.FileField(upload_to='attachments/', storage=RawMediaCloudinaryStorage())
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

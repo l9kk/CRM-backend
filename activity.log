@@ -203,3 +203,15 @@ Attachment 'attachments/images_1.jpeg' uploaded for project 'weew'.
 "POST /api/attachments/ HTTP/1.1" 201 123
 C:\Users\User\Desktop\CRM_System\crm_backend\crm\settings.py changed, reloading.
 Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Not Found: /
+"GET / HTTP/1.1" 404 179
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 179
+Attachment 'attachments/images_3.jpeg' uploaded for project 'Асхат лучший'.
+"POST /api/attachments/ HTTP/1.1" 201 123
+Attachment 'attachments/images_3_9lUccPO.jpeg' uploaded for project 'Асхат лучший'.
+"POST /api/attachments/ HTTP/1.1" 201 131
+C:\Users\User\Desktop\CRM_System\crm_backend\app\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\User\Desktop\CRM_System\crm_backend\app\models.py changed, reloading.
