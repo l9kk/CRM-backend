@@ -1,5 +1,4 @@
 import logging
-
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,11 +11,13 @@ from rest_framework.views import APIView
 from decouple import config
 
 from .services import create_comment_and_notify
-
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category
 from .serializers import (
-    ProjectSerializer, ProjectCreateSerializer,
-    AttachmentSerializer, ProjectCommentSerializer, CategorySerializer
+    ProjectSerializer,
+    ProjectCreateSerializer,
+    AttachmentSerializer,
+    ProjectCommentSerializer,
+    CategorySerializer
 )
 
 logger = logging.getLogger('app')
@@ -24,7 +25,6 @@ logger = logging.getLogger('app')
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by('-created_at')
-
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
         'status': ['exact'],
@@ -45,26 +45,37 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
 
     def perform_create(self, serializer):
+        """
+        Creates a new project and sends an email to the contact email.
+        """
         project = serializer.save()
         logger.info(f"Project '{project.title}' created by {project.sender_name}.")
+
+        # Send a "thank you" email to the user creating the project
         send_mail(
-            'Thank you for your project proposal',
-            f"We received your proposal '{project.title}'. Our team will review it soon.",
-            config('EMAIL_HOST_USER'),
-            [project.contact_email],
+            subject='Thank you for your project proposal',
+            message=f"We received your proposal '{project.title}'. Our team will review it soon.",
+            from_email=config('EMAIL_HOST_USER'),  # or your default from email
+            recipient_list=[project.contact_email],
             fail_silently=False
         )
 
     @action(detail=True, methods=['post'], url_path='accept')
     def accept_project(self, request, pk=None):
+        """
+        Marks the project as ACCEPTED, creates a comment, and sends an email.
+        """
         project = get_object_or_404(Project, pk=pk)
         project.status = ProjectStatus.ACCEPTED
         project.save(update_fields=['status'])
 
-        # Use a custom comment text if provided, otherwise default message
-        comment_text = request.data.get('comment_text', f"Project '{project.title}' was accepted.")
+        # Check if the request has a custom 'comment_text'
+        comment_text = request.data.get(
+            'comment_text',
+            f"Project '{project.title}' was accepted."  # default if none provided
+        )
 
-        # Create comment + send email (centralized in services.py)
+        # Use the centralized function to handle comment creation & email.
         create_comment_and_notify(
             project=project,
             comment_text=comment_text,
@@ -72,15 +83,25 @@ class ProjectViewSet(viewsets.ModelViewSet):
             email_subject='Project Accepted'
         )
 
-        return Response({'detail': 'Project accepted', 'status': project.status})
+        return Response({
+            'detail': 'Project accepted',
+            'status': project.status,
+            'comment_text': comment_text
+        })
 
     @action(detail=True, methods=['post'], url_path='reject')
     def reject_project(self, request, pk=None):
+        """
+        Marks the project as REJECTED, creates a comment, and sends an email.
+        """
         project = get_object_or_404(Project, pk=pk)
         project.status = ProjectStatus.REJECTED
         project.save(update_fields=['status'])
 
-        comment_text = request.data.get('comment_text', f"Project '{project.title}' was rejected.")
+        comment_text = request.data.get(
+            'comment_text',
+            f"Project '{project.title}' was rejected."
+        )
 
         create_comment_and_notify(
             project=project,
@@ -89,7 +110,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
             email_subject='Project Rejected'
         )
 
-        return Response({'detail': 'Project rejected', 'status': project.status})
+        return Response({
+            'detail': 'Project rejected',
+            'status': project.status,
+            'comment_text': comment_text
+        })
 
 
 class AttachmentViewSet(viewsets.ModelViewSet):
@@ -114,12 +139,15 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
+        """
+        Creates a new comment for a project, then sends an email notification.
+        """
         validated_data = serializer.validated_data
         project = validated_data['project']
         comment_text = validated_data['comment_text']
         author_name = validated_data.get('author_name', 'Anonymous')
 
-        # Create comment + send email with the same centralized function
+        # Create comment & send email using the helper function
         comment = create_comment_and_notify(
             project=project,
             comment_text=comment_text,
@@ -127,7 +155,7 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
             email_subject='New Comment'
         )
 
-        # Let DRF know which instance to serialize in the response
+        # Ensure DRF knows which instance was created
         serializer.instance = comment
 
 
@@ -145,7 +173,7 @@ class AttachmentDownloadView(APIView):
         original_url = attachment.file.url
         forced_download_url = original_url.replace("/upload/", "/upload/fl_attachment/")
 
-        # (Optional) If the path is "/raw/upload/", do the same replacement:
+        # (Optional) If the path is "/raw/upload/", do the same replacement.
         forced_download_url = forced_download_url.replace("/raw/upload/", "/raw/upload/fl_attachment/")
 
         # Redirect to the forced download URL

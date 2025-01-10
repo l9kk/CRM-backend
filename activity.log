@@ -354,3 +354,11 @@ C:\Users\User\Desktop\CRM_System\crm_backend\crm\settings.py changed, reloading.
 Watching for file changes with StatReloader
 Project 'Website Development Proposal' created by John Doe.
 "POST /api/projects/ HTTP/1.1" 201 372
+Project 'Website Devdfelopment Proposal' created by John Doe.
+"POST /api/projects/ HTTP/1.1" 201 374
+Project 'Website Devdfelopment Proposal' created by John Doe.
+"POST /api/projects/ HTTP/1.1" 201 375
+C:\Users\User\Desktop\CRM_System\crm_backend\crm\urls.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
+Watching for file changes with StatReloader
