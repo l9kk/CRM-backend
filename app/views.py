@@ -50,7 +50,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
-        return [IsAdminUser()]
+        return [AllowAny()]
 
     def perform_create(self, serializer):
         project = serializer.save()
@@ -121,7 +121,7 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
     """
     queryset = ProjectComment.objects.all().order_by('-created_at')
     serializer_class = ProjectCommentSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         comment = serializer.save()
