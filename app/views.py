@@ -9,6 +9,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from decouple import config
+
+# Import your helper function from services.py
+from .services import create_comment_and_notify
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category
 from .serializers import (
@@ -47,9 +51,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         send_mail(
             'Thank you for your project proposal',
             f"We received your proposal '{project.title}'. Our team will review it soon.",
-            'noreply@yourdomain.com',
+            config('EMAIL_HOST_USER'),
             [project.contact_email],
-            fail_silently=True
+            fail_silently=False
         )
 
     @action(detail=True, methods=['post'], url_path='accept')
@@ -57,19 +61,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project = get_object_or_404(Project, pk=pk)
         project.status = ProjectStatus.ACCEPTED
         project.save(update_fields=['status'])
-        ProjectComment.objects.create(
+
+        # Use a custom comment text if provided, otherwise default message
+        comment_text = request.data.get('comment_text', f"Project '{project.title}' was accepted.")
+
+        # Create comment + send email (centralized in services.py)
+        create_comment_and_notify(
             project=project,
-            comment_text=f"Project '{project.title}' was accepted.",
-            author_name=request.user.username
+            comment_text=comment_text,
+            author_name=request.user.username,
+            email_subject='Project Accepted'
         )
-        logger.info(f"Project '{project.title}' accepted by {request.user.username}.")
-        send_mail(
-            'Project Accepted',
-            f"Your project '{project.title}' has been accepted.",
-            'noreply@yourdomain.com',
-            [project.contact_email],
-            fail_silently=True
-        )
+
         return Response({'detail': 'Project accepted', 'status': project.status})
 
     @action(detail=True, methods=['post'], url_path='reject')
@@ -77,19 +80,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project = get_object_or_404(Project, pk=pk)
         project.status = ProjectStatus.REJECTED
         project.save(update_fields=['status'])
-        ProjectComment.objects.create(
+
+        comment_text = request.data.get('comment_text', f"Project '{project.title}' was rejected.")
+
+        create_comment_and_notify(
             project=project,
-            comment_text=f"Project '{project.title}' was rejected.",
-            author_name=request.user.username
+            comment_text=comment_text,
+            author_name=request.user.username,
+            email_subject='Project Rejected'
         )
-        logger.info(f"Project '{project.title}' rejected by {request.user.username}.")
-        send_mail(
-            'Project Rejected',
-            f"Your project '{project.title}' has been rejected.",
-            'noreply@yourdomain.com',
-            [project.contact_email],
-            fail_silently=True
-        )
+
         return Response({'detail': 'Project rejected', 'status': project.status})
 
 
@@ -115,8 +115,21 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
-        comment = serializer.save()
-        logger.info(f"Comment added to project '{comment.project.title}' by {comment.author_name}.")
+        validated_data = serializer.validated_data
+        project = validated_data['project']
+        comment_text = validated_data['comment_text']
+        author_name = validated_data.get('author_name', 'Anonymous')
+
+        # Create comment + send email with the same centralized function
+        comment = create_comment_and_notify(
+            project=project,
+            comment_text=comment_text,
+            author_name=author_name,
+            email_subject='New Comment'
+        )
+
+        # Let DRF know which instance to serialize in the response
+        serializer.instance = comment
 
 
 class AttachmentDownloadView(APIView):
