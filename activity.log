@@ -215,3 +215,20 @@ Attachment 'attachments/images_3_9lUccPO.jpeg' uploaded for project 'Асхат лучши
 C:\Users\User\Desktop\CRM_System\crm_backend\app\models.py changed, reloading.
 Watching for file changes with StatReloader
 C:\Users\User\Desktop\CRM_System\crm_backend\app\models.py changed, reloading.
+Watching for file changes with StatReloader
+Attachment 'attachments/images_4_pjexke.jpeg' uploaded for project 'DSvc xds'.
+"POST /api/attachments/ HTTP/1.1" 201 159
+Method Not Allowed: /api/attachments/25/download/
+"POST /api/attachments/25/download/ HTTP/1.1" 405 41
+File 'attachments/images_4_pjexke.jpeg' requested by Anonymous.
+"GET /api/attachments/25/download/ HTTP/1.1" 302 0
+File 'attachments/images_4_pjexke.jpeg' requested by Anonymous.
+"GET /api/attachments/25/download/ HTTP/1.1" 302 0
+C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
+Watching for file changes with StatReloader

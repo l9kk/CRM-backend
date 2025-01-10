@@ -1,11 +1,14 @@
 import logging
+
+import requests
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404, redirect
+from django.http import StreamingHttpResponse, Http404
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -120,21 +123,39 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
 
 class AttachmentDownloadView(APIView):
     """
-    Class-based view to redirect users directly to the
-    Cloudinary-hosted attachment.
+    Class-based view to stream the Cloudinary file to the user
+    and force it to download rather than redirecting.
     """
     permission_classes = [AllowAny]
 
     def get(self, request, attachment_id):
+        # 1. Fetch the attachment object
         attachment = get_object_or_404(Attachment, pk=attachment_id)
         file_url = attachment.file.url  # Cloudinary URL
 
+        # 2. Optional logging
         user_info = request.user.username if request.user.is_authenticated else 'Anonymous'
         logger.info(f"File '{attachment.file.name}' requested by {user_info}.")
 
-        # Redirect the user directly to the Cloudinary URL
-        return redirect(file_url)
+        # 3. Download the file from Cloudinary via requests
+        try:
+            cloud_response = requests.get(file_url, stream=True)
+            cloud_response.raise_for_status()  # Raise HTTPError for bad responses
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching file from Cloudinary: {file_url} - {e}")
+            raise Http404("File not found on Cloudinary.")
 
+        # 4. Prepare a streaming response
+        filename = attachment.file.name.split('/')[-1]  # Extract just the file name
+        response = StreamingHttpResponse(
+            cloud_response.iter_content(chunk_size=8192),
+            content_type='application/octet-stream'
+        )
+
+        # 5. Force the browser to download the file
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        return response
 
 class CategoryListView(APIView):
     """
