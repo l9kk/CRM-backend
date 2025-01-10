@@ -1,0 +1,95 @@
+Watching for file changes with StatReloader
+Bad Request: /api/attachments/
+"POST /api/attachments/ HTTP/1.1" 400 35
+Bad Request: /api/attachments/
+"POST /api/attachments/ HTTP/1.1" 400 35
+Bad Request: /api/attachments/
+"POST /api/attachments/ HTTP/1.1" 400 35
+Attachment 'attachments/wowww.jpeg' uploaded for project 'Test Project Title'.
+"POST /api/attachments/ HTTP/1.1" 201 132
+C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Internal Server Error: /api/categories/
+Traceback (most recent call last):
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 74, in wrap_attributeerrors
+    yield
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 231, in user
+    self._authenticate()
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 384, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DjangoFilterBackend' object has no attribute 'authenticate'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 230, in user
+    with wrap_attributeerrors():
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 78, in wrap_attributeerrors
+    raise exc.with_traceback(info[2])
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 74, in wrap_attributeerrors
+    yield
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 231, in user
+    self._authenticate()
+  File "C:\Users\User\Desktop\CRM_System\.venv\Lib\site-packages\rest_framework\request.py", line 384, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+rest_framework.request.WrappedAttributeError: 'DjangoFilterBackend' object has no attribute 'authenticate'
+"GET /api/categories/ HTTP/1.1" 500 145
+C:\Users\User\Desktop\CRM_System\crm_backend\crm\settings.py changed, reloading.
+Watching for file changes with StatReloader
+Categories list retrieved.
+"GET /api/categories/ HTTP/1.1" 200 100
+C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Attachment 'attachments/undefined_-_Imgur_2.jpg' uploaded for project 'Test Project Title'.
+"POST /api/attachments/ HTTP/1.1" 201 132
+File 'attachments/nazi_falg.png' requested by Anonymous.
+"GET /api/attachments/13/download/ HTTP/1.1" 302 0
+Not Found: /attachments/nazi_falg.png
+"GET /attachments/nazi_falg.png HTTP/1.1" 404 179
+Not Found: /api/attachments/1/download/
+"GET /api/attachments/1/download/ HTTP/1.1" 404 51
+Not Found: /api/attachments/2/download/
+"GET /api/attachments/2/download/ HTTP/1.1" 404 51
+Not Found: /api/attachments/2/download/
+"GET /api/attachments/2/download/ HTTP/1.1" 404 51
+File 'attachments/nazi_falg.png' requested by Anonymous.
+"GET /api/attachments/13/download/ HTTP/1.1" 302 0
+Not Found: /attachments/nazi_falg.png
+"GET /attachments/nazi_falg.png HTTP/1.1" 404 179
+Watching for file changes with StatReloader
+"GET /api/attachments/ HTTP/1.1" 200 259
+C:\Users\User\Desktop\CRM_System\crm_backend\app\models.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
