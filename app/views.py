@@ -11,7 +11,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from decouple import config
 
-# Import your helper function from services.py
 from .services import create_comment_and_notify
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category
