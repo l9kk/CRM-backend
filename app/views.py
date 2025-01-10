@@ -130,13 +130,7 @@ class AttachmentDownloadView(APIView):
         attachment = get_object_or_404(Attachment, pk=attachment_id)
 
         # Original Cloudinary URL
-        original_url = attachment.file.url  # e.g. https://res.cloudinary.com/.../upload/v1/...
-
-        # Insert "fl_attachment" after "/upload/" to force download:
-        # For example, transforms:
-        #   https://res.cloudinary.com/.../upload/v1/filename.jpg
-        # into
-        #   https://res.cloudinary.com/.../upload/fl_attachment/v1/filename.jpg
+        original_url = attachment.file.url
         forced_download_url = original_url.replace("/upload/", "/upload/fl_attachment/")
 
         # (Optional) If the path is "/raw/upload/", do the same replacement:
