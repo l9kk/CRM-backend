@@ -15,5 +15,5 @@ router.register(r'comments', ProjectCommentViewSet, basename='comments')
 urlpatterns = [
     path('', include(router.urls)),
     path('attachments/<int:attachment_id>/download/', AttachmentDownloadView.as_view(), name='attachment_download'),
-    path('categories/', CategoryListView.as_view(), name='category-list')
+    path('categories/', CategoryListView.as_view(), name='category-list'),
 ]
