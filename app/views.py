@@ -136,11 +136,6 @@ class AttachmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         attachment = serializer.save()
-        ApplicationLog.objects.create(
-            level="INFO",
-            message=f"Attachment '{attachment.file.name}' uploaded for project '{attachment.project.title}'.",
-            logger_name="AttachmentViewSet.perform_create"
-        )
 
 
 class ProjectCommentViewSet(viewsets.ModelViewSet):
@@ -198,9 +193,4 @@ class CategoryListView(APIView):
     def get(self, request):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
-        ApplicationLog.objects.create(
-            level="INFO",
-            message="Categories list retrieved.",
-            logger_name="CategoryListView.get"
-        )
         return Response(serializer.data)
