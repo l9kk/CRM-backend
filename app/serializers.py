@@ -1,6 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
-from .models import Project, Attachment, ProjectComment, Category
+from .models import Project, Attachment, ProjectComment, Category, ApplicationLog
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
@@ -72,3 +72,8 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         if value < timezone.now().date():
             raise serializers.ValidationError("The deadline cannot be in the past.")
         return value
+
+class ApplicationLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApplicationLog
+        fields = ['level', 'message', 'logger_name', 'created_at']

@@ -5,11 +5,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category, ApplicationLog
+from .serializers import ApplicationLogSerializer
 from .serializers import (
     ProjectSerializer,
     ProjectCreateSerializer,
@@ -194,3 +197,28 @@ class CategoryListView(APIView):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
+
+
+class ApplicationLogView(APIView):
+    """
+    API endpoint to retrieve logs.
+    """
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        queryset = ApplicationLog.objects.all().order_by('-created_at')
+
+        level = request.query_params.get('level')
+        if level:
+            queryset = queryset.filter(level__iexact=level)
+
+        search_term = request.query_params.get('search')
+        if search_term:
+            queryset = queryset.filter(message__icontains=search_term)
+
+        paginator = PageNumberPagination()
+        paginator.page_size = 10  # Set page size
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+
+        serializer = ApplicationLogSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)

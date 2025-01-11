@@ -4,7 +4,7 @@ from .views import (
     ProjectViewSet,
     AttachmentViewSet,
     ProjectCommentViewSet,
-    AttachmentDownloadView, CategoryListView
+    AttachmentDownloadView, CategoryListView, ApplicationLogView
 )
 
 router = DefaultRouter()
@@ -16,4 +16,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('attachments/<int:attachment_id>/download/', AttachmentDownloadView.as_view(), name='attachment_download'),
     path('categories/', CategoryListView.as_view(), name='category-list'),
+    path('logs/', ApplicationLogView.as_view(), name='application-logs')
 ]
