@@ -15,7 +15,14 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
     def validate_file(self, value):
         max_file_size = 5 * 1024 * 1024  # 5 MB
-        allowed_file_types = ['image/jpeg', 'image/png', 'application/pdf']
+        allowed_file_types = [
+            'image/jpeg',
+            'image/png',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain'
+        ]
 
         if value.size > max_file_size:
             raise serializers.ValidationError("File size must not exceed 5MB.")
