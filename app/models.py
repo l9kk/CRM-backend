@@ -3,6 +3,16 @@ from django.utils import timezone
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
+class ApplicationLog(models.Model):
+    level = models.CharField(max_length=20)  # e.g., INFO, WARNING, ERROR
+    message = models.TextField()
+    logger_name = models.CharField(max_length=100)  # e.g., ViewSet or Function name
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"[{self.level}] {self.logger_name}: {self.message[:50]}..."
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
 

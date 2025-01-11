@@ -1,4 +1,4 @@
-import logging
+from decouple import config
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,10 +8,8 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from decouple import config
 
-from .services import create_comment_and_notify
-from .models import Project, Attachment, ProjectComment, ProjectStatus, Category
+from .models import Project, Attachment, ProjectComment, ProjectStatus, Category, ApplicationLog
 from .serializers import (
     ProjectSerializer,
     ProjectCreateSerializer,
@@ -19,8 +17,7 @@ from .serializers import (
     ProjectCommentSerializer,
     CategorySerializer
 )
-
-logger = logging.getLogger('app')
+from .services import create_comment_and_notify
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -49,13 +46,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         Creates a new project and sends an email to the contact email.
         """
         project = serializer.save()
-        logger.info(f"Project '{project.title}' created by {project.sender_name}.")
+        # Save log to ApplicationLog
+        ApplicationLog.objects.create(
+            level="INFO",
+            message=f"Project '{project.title}' created by {project.sender_name}.",
+            logger_name="ProjectViewSet.perform_create"
+        )
 
         # Send a "thank you" email to the user creating the project
         send_mail(
             subject='Thank you for your project proposal',
             message=f"We received your proposal '{project.title}'. Our team will review it soon.",
-            from_email=config('EMAIL_HOST_USER'),  # or your default from email
+            from_email=config('EMAIL_HOST_USER'),
             recipient_list=[project.contact_email],
             fail_silently=False
         )
@@ -69,18 +71,22 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project.status = ProjectStatus.ACCEPTED
         project.save(update_fields=['status'])
 
-        # Check if the request has a custom 'comment_text'
         comment_text = request.data.get(
             'comment_text',
-            f"Project '{project.title}' was accepted."  # default if none provided
+            f"Project '{project.title}' was accepted."
         )
 
-        # Use the centralized function to handle comment creation & email.
         create_comment_and_notify(
             project=project,
             comment_text=comment_text,
             author_name=request.user.username,
             email_subject='Project Accepted'
+        )
+
+        ApplicationLog.objects.create(
+            level="INFO",
+            message=f"Project '{project.title}' accepted by {request.user.username}.",
+            logger_name="ProjectViewSet.accept_project"
         )
 
         return Response({
@@ -110,6 +116,12 @@ class ProjectViewSet(viewsets.ModelViewSet):
             email_subject='Project Rejected'
         )
 
+        ApplicationLog.objects.create(
+            level="INFO",
+            message=f"Project '{project.title}' rejected by {request.user.username}.",
+            logger_name="ProjectViewSet.reject_project"
+        )
+
         return Response({
             'detail': 'Project rejected',
             'status': project.status,
@@ -127,7 +139,11 @@ class AttachmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         attachment = serializer.save()
-        logger.info(f"Attachment '{attachment.file.name}' uploaded for project '{attachment.project.title}'.")
+        ApplicationLog.objects.create(
+            level="INFO",
+            message=f"Attachment '{attachment.file.name}' uploaded for project '{attachment.project.title}'.",
+            logger_name="AttachmentViewSet.perform_create"
+        )
 
 
 class ProjectCommentViewSet(viewsets.ModelViewSet):
@@ -147,7 +163,6 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
         comment_text = validated_data['comment_text']
         author_name = validated_data.get('author_name', 'Anonymous')
 
-        # Create comment & send email using the helper function
         comment = create_comment_and_notify(
             project=project,
             comment_text=comment_text,
@@ -155,39 +170,40 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
             email_subject='New Comment'
         )
 
-        # Ensure DRF knows which instance was created
+        ApplicationLog.objects.create(
+            level="INFO",
+            message=f"Comment added to project '{project.title}' by {author_name}.",
+            logger_name="ProjectCommentViewSet.perform_create"
+        )
+
         serializer.instance = comment
 
 
 class AttachmentDownloadView(APIView):
-    """
-    Class-based view to force-download a Cloudinary file by inserting
-    the 'fl_attachment' parameter into the URL.
-    """
     permission_classes = [AllowAny]
 
     def get(self, request, attachment_id):
         attachment = get_object_or_404(Attachment, pk=attachment_id)
-
-        # Original Cloudinary URL
         original_url = attachment.file.url
         forced_download_url = original_url.replace("/upload/", "/upload/fl_attachment/")
-
-        # (Optional) If the path is "/raw/upload/", do the same replacement.
         forced_download_url = forced_download_url.replace("/raw/upload/", "/raw/upload/fl_attachment/")
-
-        # Redirect to the forced download URL
+        ApplicationLog.objects.create(
+            level="INFO",
+            message=f"Attachment '{attachment.file.name}' viewed by {request.user.username}.",
+            logger_name="AttachmentDownloadView.get"
+        )
         return redirect(forced_download_url)
 
 
 class CategoryListView(APIView):
-    """
-    View to list all available categories.
-    """
     permission_classes = [AllowAny]
 
     def get(self, request):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
-        logger.info("Categories list retrieved.")
+        ApplicationLog.objects.create(
+            level="INFO",
+            message="Categories list retrieved.",
+            logger_name="CategoryListView.get"
+        )
         return Response(serializer.data)
