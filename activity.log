@@ -362,3 +362,7 @@ C:\Users\User\Desktop\CRM_System\crm_backend\crm\urls.py changed, reloading.
 Watching for file changes with StatReloader
 C:\Users\User\Desktop\CRM_System\crm_backend\app\views.py changed, reloading.
 Watching for file changes with StatReloader
+Comment added to project '54rf5t4gtr' by : Project '54rf5t4gtr' was accepted.
+"POST /api/projects/53/accept/ HTTP/1.1" 200 101
+Comment added to project '54rf5t4gtr' by : My custom acceptance message!
+"POST /api/projects/53/reject/ HTTP/1.1" 200 96
