@@ -52,7 +52,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         ApplicationLog.objects.create(
             level="INFO",
             message=f"Project '{project.title}' created by {project.sender_name}.",
-            logger_name="ProjectViewSet.perform_create"
+            logger_name="Create project"
         )
         send_mail(
             subject='Thank you for your project proposal',
@@ -80,13 +80,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
             project=project,
             comment_text=comment_text,
             author_name=request.user.username,
-            email_subject='Project Accepted'
+            email_subject=f"Project '{project.title}' Accepted"
         )
 
         ApplicationLog.objects.create(
             level="INFO",
             message=f"Project '{project.title}' accepted by {request.user.username}.",
-            logger_name="ProjectViewSet.accept_project"
+            logger_name="Accept project"
         )
 
         return Response({
@@ -113,13 +113,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
             project=project,
             comment_text=comment_text,
             author_name=request.user.username,
-            email_subject='Project Rejected'
+            email_subject=f"Project '{project.title}' Rejected"
         )
 
         ApplicationLog.objects.create(
             level="INFO",
             message=f"Project '{project.title}' rejected by {request.user.username}.",
-            logger_name="ProjectViewSet.reject_project"
+            logger_name="Reject project"
         )
 
         return Response({
@@ -127,7 +127,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
             'status': project.status,
             'comment_text': comment_text
         })
-
 
 class AttachmentViewSet(viewsets.ModelViewSet):
     """
@@ -168,7 +167,7 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
         ApplicationLog.objects.create(
             level="INFO",
             message=f"Comment added to project '{project.title}' by {author_name}.",
-            logger_name="ProjectCommentViewSet.perform_create"
+            logger_name="Create comment to project"
         )
 
         serializer.instance = comment
@@ -185,7 +184,7 @@ class AttachmentDownloadView(APIView):
         ApplicationLog.objects.create(
             level="INFO",
             message=f"Attachment '{attachment.file.name}' viewed by {request.user.username}.",
-            logger_name="AttachmentDownloadView.get"
+            logger_name="Attachment download"
         )
         return redirect(forced_download_url)
 
