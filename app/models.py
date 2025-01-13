@@ -4,9 +4,9 @@ from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
 class ApplicationLog(models.Model):
-    level = models.CharField(max_length=20)  # e.g., INFO, WARNING, ERROR
+    level = models.CharField(max_length=20)
     message = models.TextField()
-    logger_name = models.CharField(max_length=100)  # e.g., ViewSet or Function name
+    logger_name = models.CharField(max_length=100)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -44,7 +44,6 @@ class Project(models.Model):
         default=ProjectStatus.NEW
     )
 
-    # Timestamps
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 

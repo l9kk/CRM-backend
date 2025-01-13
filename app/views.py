@@ -216,7 +216,7 @@ class ApplicationLogView(APIView):
             queryset = queryset.filter(message__icontains=search_term)
 
         paginator = PageNumberPagination()
-        paginator.page_size = 10  # Set page size
+        paginator.page_size = 10
         paginated_queryset = paginator.paginate_queryset(queryset, request)
 
         serializer = ApplicationLogSerializer(paginated_queryset, many=True)

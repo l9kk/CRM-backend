@@ -27,7 +27,6 @@ class AttachmentSerializer(serializers.ModelSerializer):
         if value.size > max_file_size:
             raise serializers.ValidationError("File size must not exceed 5MB.")
 
-        # If you're using Cloudinary and there's no local content_type, this may be empty.
         file_type = getattr(value, 'content_type', None)
         if not file_type or file_type not in allowed_file_types:
             raise serializers.ValidationError("Invalid file type. Allowed types: JPEG, PNG, PDF.")
