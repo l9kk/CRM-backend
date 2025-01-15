@@ -29,7 +29,9 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
         file_type = getattr(value, 'content_type', None)
         if not file_type or file_type not in allowed_file_types:
-            raise serializers.ValidationError("Invalid file type. Allowed types: JPEG, PNG, PDF.")
+            raise serializers.ValidationError(
+                "Invalid file type. Allowed types: JPEG, PNG, PDF, Word, and TXT."
+            )
 
         return value
 
@@ -55,8 +57,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'id', 'title', 'description', 'budget', 'deadline',
-            'sender_name', 'contact_email', 'status', 'created_at', 'updated_at',
-            'attachments', 'comments', 'category'
+            'sender_name', 'contact_email', 'status', 'priority',
+            'created_at', 'updated_at', 'attachments', 'comments', 'category'
         ]
 
 
@@ -70,7 +72,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'id', 'title', 'description', 'budget', 'deadline',
-            'sender_name', 'contact_email', 'category', 'status',
+            'sender_name', 'contact_email', 'category', 'status', 'priority',
             'created_at', 'updated_at'
         ]
 

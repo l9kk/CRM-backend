@@ -2,15 +2,14 @@ from django.db import models
 from django.utils import timezone
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
-
 class ApplicationLog(models.Model):
-    level = models.CharField(max_length=20)
     message = models.TextField()
     logger_name = models.CharField(max_length=100)
+    interacted_by = models.CharField(max_length=150, null=True, blank=True)  # Tracks who interacted
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"[{self.level}] {self.logger_name}: {self.message[:50]}..."
+        return f"[{self.logger_name}] {self.interacted_by}: {self.message[:50]}..."
 
 
 class Category(models.Model):
@@ -24,6 +23,14 @@ class ProjectStatus(models.TextChoices):
     NEW = 'NEW', 'New'
     ACCEPTED = 'ACCEPTED', 'Accepted'
     REJECTED = 'REJECTED', 'Rejected'
+    IN_PROGRESS = 'IN_PROGRESS', 'In Progress'
+    COMPLETED = 'COMPLETED', 'Completed'
+
+
+class ProjectPriority(models.TextChoices):
+    HIGH = 'HIGH', 'High'
+    MEDIUM = 'MEDIUM', 'Medium'
+    LOW = 'LOW', 'Low'
 
 
 class Project(models.Model):
@@ -36,19 +43,24 @@ class Project(models.Model):
     sender_name = models.CharField(max_length=150)
     contact_email = models.EmailField()
 
-    # Category & status
+    # Category, status, and priority
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(
-        max_length=10,
+        max_length=15,
         choices=ProjectStatus.choices,
         default=ProjectStatus.NEW
+    )
+    priority = models.CharField(
+        max_length=10,
+        choices=ProjectPriority.choices,
+        default=ProjectPriority.MEDIUM
     )
 
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.title} ({self.status})"
+        return f"{self.title} ({self.status}, Priority: {self.priority})"
 
 
 class Attachment(models.Model):

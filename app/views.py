@@ -29,10 +29,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         'status': ['exact'],
         'category__name': ['icontains'],
+        'priority': ['exact'],
         'budget': ['gte', 'lte'],
     }
-    search_fields = ['title', 'description', 'sender_name']
-    ordering_fields = ['budget', 'created_at', 'updated_at']
+    search_fields = ['title', 'description', 'sender_name', 'priority']
+    ordering_fields = ['budget', 'created_at', 'updated_at', 'priority']
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -51,7 +52,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project = serializer.save()
         ApplicationLog.objects.create(
             level="INFO",
-            message=f"Project '{project.title}' created by {project.sender_name}.",
+            message=f"Project '{project.title}' with priority '{project.priority}' created by {project.sender_name}.",
             logger_name="Create project"
         )
         send_mail(
@@ -126,6 +127,27 @@ class ProjectViewSet(viewsets.ModelViewSet):
             'detail': 'Project rejected',
             'status': project.status,
             'comment_text': comment_text
+        })
+
+    @action(detail=True, methods=['post'], url_path='update-priority')
+    def update_priority(self, request, pk=None):
+        project = get_object_or_404(Project, pk=pk)
+        new_priority = request.data.get('priority')
+        if new_priority not in ['High', 'Medium', 'Low']:
+            return Response({'error': f"Invalid priority: {new_priority}"}, status=400)
+
+        project.priority = new_priority
+        project.save(update_fields=['priority'])
+
+        ApplicationLog.objects.create(
+            level="INFO",
+            message=f"Project '{project.title}' priority updated to '{new_priority}' by {request.user.username}.",
+            logger_name="Update project priority"
+        )
+
+        return Response({
+            'detail': f"Project priority updated to {new_priority}",
+            'priority': project.priority
         })
 
 class AttachmentViewSet(viewsets.ModelViewSet):
