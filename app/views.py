@@ -156,7 +156,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         )
         return Response({'detail': 'Project started', 'status': project.status})
 
-    @action(detail=True, methods=['post'], url_path='mark-completed')
+    @action(detail=True, methods=['post'], url_path='completed')
     def mark_completed(self, request, pk=None):
         project = get_object_or_404(Project, pk=pk)
         if project.status != ProjectStatus.IN_PROGRESS:
