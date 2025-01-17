@@ -58,6 +58,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'budget', 'deadline',
             'sender_name', 'contact_email', 'status', 'priority',
+            'accepted_by', 'started_by', 'completed_by',
             'created_at', 'updated_at', 'attachments', 'comments', 'category'
         ]
 

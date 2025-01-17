@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
+from django.contrib.auth.models import User
 
 class ApplicationLog(models.Model):
     message = models.TextField()
@@ -56,6 +57,13 @@ class Project(models.Model):
 
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+
+    accepted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name="accepted_projects")
+    started_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="started_projects")
+    completed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name="completed_projects")
 
     def __str__(self):
         return f"{self.title} ({self.status}, Priority: {self.priority})"

@@ -30,6 +30,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         'category__name': ['icontains'],
         'priority': ['exact'],
         'budget': ['gte', 'lte'],
+        'accepted_by': ['exact'],
+        'started_by': ['exact'],
+        'completed_by': ['exact'],
     }
     search_fields = ['title', 'description', 'sender_name', 'priority']
     ordering_fields = ['budget', 'created_at', 'updated_at', 'priority']
@@ -72,7 +75,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only new projects can be accepted.'}, status=400)
 
         project.status = ProjectStatus.ACCEPTED
-        project.save(update_fields=['status'])
+        project.accepted_by = request.user
+        project.save(update_fields=['status', 'accepted_by'])
 
         comment_text = request.data.get(
             'comment_text',
@@ -140,7 +144,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only accepted projects can be started.'}, status=400)
 
         project.status = ProjectStatus.IN_PROGRESS
-        project.save(update_fields=['status'])
+        project.started_by = request.user
+        project.save(update_fields=['status', 'started_by'])
 
         create_comment_and_notify(
             project=project,
@@ -163,7 +168,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only projects in progress can be marked as completed.'}, status=400)
 
         project.status = ProjectStatus.COMPLETED
-        project.save(update_fields=['status'])
+        project.completed_by = request.user
+        project.save(update_fields=['status', 'completed_by'])
 
         create_comment_and_notify(
             project=project,
@@ -178,10 +184,26 @@ class ProjectViewSet(viewsets.ModelViewSet):
             interacted_by=request.user.username
         )
 
-        return Response({
-            'detail': 'Project marked as completed',
-            'status': project.status
-        })
+        return Response({'detail': 'Project marked as completed', 'status': project.status})
+
+
+class UserProjectViewSet(viewsets.ViewSet):
+    permission_classes = [IsAdminUser]
+
+    @action(detail=False, methods=['get'], url_path='my-projects')
+    def my_projects(self, request):
+        accepted_projects = Project.objects.filter(accepted_by=request.user)
+        started_projects = Project.objects.filter(started_by=request.user)
+        completed_projects = Project.objects.filter(completed_by=request.user)
+
+        response_data = {
+            'accepted_projects': ProjectSerializer(accepted_projects, many=True).data,
+            'started_projects': ProjectSerializer(started_projects, many=True).data,
+            'completed_projects': ProjectSerializer(completed_projects, many=True).data,
+        }
+
+        return Response(response_data)
+
 
 class AttachmentViewSet(viewsets.ModelViewSet):
     """
