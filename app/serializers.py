@@ -1,6 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
-from .models import Project, Attachment, ProjectComment, Category, ApplicationLog
+from .models import Project, Attachment, ProjectComment, Category, ApplicationLog, ProjectStatus, ProjectPriority
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
@@ -67,6 +67,8 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
     Used when public users create a new project proposal.
     """
     deadline = serializers.DateField()
+    priority = serializers.ChoiceField(choices=ProjectPriority.choices, default=ProjectPriority.MEDIUM)
+    status = serializers.ChoiceField(choices=ProjectStatus.choices, default=ProjectStatus.NEW)
 
     class Meta:
         model = Project
@@ -82,6 +84,8 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         return value
 
 class ApplicationLogSerializer(serializers.ModelSerializer):
+    interacted_by = serializers.CharField(required=True)
+
     class Meta:
         model = ApplicationLog
         fields = ['message', 'logger_name', 'interacted_by', 'created_at']
