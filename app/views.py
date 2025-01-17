@@ -6,14 +6,13 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category, ApplicationLog
-from .serializers import ApplicationLogSerializer
 from .serializers import (
+    ApplicationLogSerializer,
     ProjectSerializer,
     ProjectCreateSerializer,
     AttachmentSerializer,
@@ -51,9 +50,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """
         project = serializer.save()
         ApplicationLog.objects.create(
-            level="INFO",
             message=f"Project '{project.title}' with priority '{project.priority}' created by {project.sender_name}.",
-            logger_name="Create project"
+            logger_name="Create project",
+            interacted_by=project.sender_name
         )
         send_mail(
             subject='Thank you for your project proposal',
@@ -69,6 +68,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         Marks the project as ACCEPTED, creates a comment, and sends an email.
         """
         project = get_object_or_404(Project, pk=pk)
+        if project.status != ProjectStatus.NEW:
+            return Response({'error': 'Only new projects can be accepted.'}, status=400)
+
         project.status = ProjectStatus.ACCEPTED
         project.save(update_fields=['status'])
 
@@ -85,9 +87,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         )
 
         ApplicationLog.objects.create(
-            level="INFO",
             message=f"Project '{project.title}' accepted by {request.user.username}.",
-            logger_name="Accept project"
+            logger_name="Accept project",
+            interacted_by=request.user.username
         )
 
         return Response({
@@ -102,14 +104,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
         Marks the project as REJECTED, creates a comment, and sends an email.
         """
         project = get_object_or_404(Project, pk=pk)
+        if project.status != ProjectStatus.NEW:
+            return Response({'error': 'Only new projects can be rejected.'}, status=400)
+
         project.status = ProjectStatus.REJECTED
         project.save(update_fields=['status'])
 
-        comment_text = request.data.get(
-            'comment_text',
-            f"Project '{project.title}' was rejected."
-        )
-
+        comment_text = request.data.get('comment_text', f"Project '{project.title}' was rejected.")
         create_comment_and_notify(
             project=project,
             comment_text=comment_text,
@@ -118,9 +119,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         )
 
         ApplicationLog.objects.create(
-            level="INFO",
             message=f"Project '{project.title}' rejected by {request.user.username}.",
-            logger_name="Reject project"
+            logger_name="Reject project",
+            interacted_by=request.user.username
         )
 
         return Response({
@@ -129,25 +130,57 @@ class ProjectViewSet(viewsets.ModelViewSet):
             'comment_text': comment_text
         })
 
-    @action(detail=True, methods=['post'], url_path='update-priority')
-    def update_priority(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='start')
+    def start_project(self, request, pk=None):
+        """
+        Moves the project to IN_PROGRESS after it has been ACCEPTED.
+        """
         project = get_object_or_404(Project, pk=pk)
-        new_priority = request.data.get('priority')
-        if new_priority not in ['High', 'Medium', 'Low']:
-            return Response({'error': f"Invalid priority: {new_priority}"}, status=400)
+        if project.status != ProjectStatus.ACCEPTED:
+            return Response({'error': 'Only accepted projects can be started.'}, status=400)
 
-        project.priority = new_priority
-        project.save(update_fields=['priority'])
+        project.status = ProjectStatus.IN_PROGRESS
+        project.save(update_fields=['status'])
+
+        create_comment_and_notify(
+            project=project,
+            comment_text=f"Project '{project.title}' has started.",
+            author_name=request.user.username,
+            email_subject=f"Project '{project.title}' Started"
+        )
 
         ApplicationLog.objects.create(
-            level="INFO",
-            message=f"Project '{project.title}' priority updated to '{new_priority}' by {request.user.username}.",
-            logger_name="Update project priority"
+            message=f"Project '{project.title}' started by {request.user.username}.",
+            logger_name="Start project",
+            interacted_by=request.user.username
+        )
+        return Response({'detail': 'Project started', 'status': project.status})
+
+    @action(detail=True, methods=['post'], url_path='mark-completed')
+    def mark_completed(self, request, pk=None):
+        project = get_object_or_404(Project, pk=pk)
+        if project.status != ProjectStatus.IN_PROGRESS:
+            return Response({'error': 'Only projects in progress can be marked as completed.'}, status=400)
+
+        project.status = ProjectStatus.COMPLETED
+        project.save(update_fields=['status'])
+
+        create_comment_and_notify(
+            project=project,
+            comment_text=f"Project '{project.title}' has been completed.",
+            author_name=request.user.username,
+            email_subject=f"Project '{project.title}' Completed"
+        )
+
+        ApplicationLog.objects.create(
+            message=f"Project '{project.title}' marked as completed by {request.user.username}.",
+            logger_name="Complete project",
+            interacted_by=request.user.username
         )
 
         return Response({
-            'detail': f"Project priority updated to {new_priority}",
-            'priority': project.priority
+            'detail': 'Project marked as completed',
+            'status': project.status
         })
 
 class AttachmentViewSet(viewsets.ModelViewSet):
@@ -187,9 +220,9 @@ class ProjectCommentViewSet(viewsets.ModelViewSet):
         )
 
         ApplicationLog.objects.create(
-            level="INFO",
             message=f"Comment added to project '{project.title}' by {author_name}.",
-            logger_name="Create comment to project"
+            logger_name="Create comment to project",
+            interacted_by=author_name
         )
 
         serializer.instance = comment
@@ -204,9 +237,9 @@ class AttachmentDownloadView(APIView):
         forced_download_url = original_url.replace("/upload/", "/upload/fl_attachment/")
         forced_download_url = forced_download_url.replace("/raw/upload/", "/raw/upload/fl_attachment/")
         ApplicationLog.objects.create(
-            level="INFO",
             message=f"Attachment '{attachment.file.name}' viewed by {request.user.username}.",
-            logger_name="Attachment download"
+            logger_name="Attachment download",
+            interacted_by=request.user.username
         )
         return redirect(forced_download_url)
 
@@ -229,9 +262,9 @@ class ApplicationLogView(APIView):
     def get(self, request):
         queryset = ApplicationLog.objects.all().order_by('-created_at')
 
-        level = request.query_params.get('level')
-        if level:
-            queryset = queryset.filter(level__iexact=level)
+        interacted_by = request.query_params.get('interacted_by')
+        if interacted_by:
+            queryset = queryset.filter(interacted_by__icontains=interacted_by)
 
         search_term = request.query_params.get('search')
         if search_term:

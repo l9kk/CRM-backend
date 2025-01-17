@@ -84,4 +84,4 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 class ApplicationLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationLog
-        fields = ['level', 'message', 'logger_name', 'created_at']
+        fields = ['message', 'logger_name', 'interacted_by', 'created_at']

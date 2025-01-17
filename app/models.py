@@ -5,7 +5,7 @@ from cloudinary_storage.storage import RawMediaCloudinaryStorage
 class ApplicationLog(models.Model):
     message = models.TextField()
     logger_name = models.CharField(max_length=100)
-    interacted_by = models.CharField(max_length=150, null=True, blank=True)  # Tracks who interacted
+    interacted_by = models.CharField(max_length=150, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
