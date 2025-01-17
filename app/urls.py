@@ -19,3 +19,4 @@ urlpatterns = [
     path('logs/', ApplicationLogView.as_view(), name='application-logs'),
     path('user/my_projects/', UserProjectViewSet.as_view({'get': 'my_projects'}), name='user-projects')
 ]
+
