@@ -17,5 +17,5 @@ urlpatterns = [
     path('attachments/<int:attachment_id>/download/', AttachmentDownloadView.as_view(), name='attachment_download'),
     path('categories/', CategoryListView.as_view(), name='category-list'),
     path('logs/', ApplicationLogView.as_view(), name='application-logs'),
-    path('user/', UserProjectViewSet.as_view({'get': 'my_projects'}), name='user-projects')
+    path('user/my_projects/', UserProjectViewSet.as_view({'get': 'my_projects'}), name='user-projects')
 ]
