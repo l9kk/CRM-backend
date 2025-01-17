@@ -5,7 +5,7 @@ from cloudinary_storage.storage import RawMediaCloudinaryStorage
 class ApplicationLog(models.Model):
     message = models.TextField()
     logger_name = models.CharField(max_length=100)
-    interacted_by = models.CharField(max_length=150, null=True, blank=True)
+    interacted_by = models.CharField(max_length=150, null=False)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -39,11 +39,9 @@ class Project(models.Model):
     budget = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     deadline = models.DateField(default=timezone.now)
 
-    # Public user info
     sender_name = models.CharField(max_length=150)
     contact_email = models.EmailField()
 
-    # Category, status, and priority
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(
         max_length=15,
@@ -61,6 +59,11 @@ class Project(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.status}, Priority: {self.priority})"
+
+    def save(self, *args, **kwargs):
+        if self.deadline < timezone.now().date():
+            raise ValueError("The deadline cannot be in the past.")
+        super().save(*args, **kwargs)
 
 
 class Attachment(models.Model):
