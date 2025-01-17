@@ -12,9 +12,10 @@ class ProjectAdmin(admin.ModelAdmin):
 class ApplicationLogAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return request.user.is_staff and request.user.is_superuser
-    list_display = ('level', 'message', 'logger_name', 'created_at')
-    search_fields = ('message', 'logger_name')
-    list_filter = ('level',)
+
+    list_display = ('message', 'logger_name', 'interacted_by', 'created_at')
+    search_fields = ('message', 'logger_name', 'interacted_by')
+    list_filter = ('logger_name', 'created_at')
 
 admin.site.register(Attachment)
 admin.site.register(ProjectComment)
