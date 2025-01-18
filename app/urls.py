@@ -11,12 +11,12 @@ router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='projects')
 router.register(r'attachments', AttachmentViewSet, basename='attachments')
 router.register(r'comments', ProjectCommentViewSet, basename='comments')
+router.register(r'user/my-projects', UserProjectViewSet, basename='user-projects')
 
 urlpatterns = [
     path('', include(router.urls)),
     path('attachments/<int:attachment_id>/download/', AttachmentDownloadView.as_view(), name='attachment_download'),
     path('categories/', CategoryListView.as_view(), name='category-list'),
     path('logs/', ApplicationLogView.as_view(), name='application-logs'),
-    path('user/my_projects/', UserProjectViewSet.as_view({'get': 'my_projects'}), name='user-projects')
 ]
 
