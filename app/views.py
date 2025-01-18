@@ -9,6 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db import models
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category, ApplicationLog
 from .serializers import (
@@ -192,25 +193,18 @@ class UserProjectViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='my-projects')
     def my_projects(self, request):
+        user = request.user
         projects = Project.objects.filter(
-            models.Q(accepted_by=request.user) |
-            models.Q(started_by=request.user) |
-            models.Q(completed_by=request.user)
+            models.Q(accepted_by=user) |
+            models.Q(started_by=user) |
+            models.Q(completed_by=user)
         ).distinct()
 
-        project_list = [
-            {
-                "id": project.id,
-                "title": project.title,
-                "status": project.status,
-                "priority": project.priority,
-                "category": project.category.id if project.category else None,
-                "created_at": project.created_at.isoformat(),
-            }
-            for project in projects
-        ]
+        response_data = {
+            "projects": ProjectSerializer(projects, many=True).data
+        }
 
-        return Response({"projects": project_list})
+        return Response(response_data)
 
 
 class AttachmentViewSet(viewsets.ModelViewSet):
