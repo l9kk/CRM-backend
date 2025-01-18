@@ -192,17 +192,25 @@ class UserProjectViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='my-projects')
     def my_projects(self, request):
-        accepted_projects = Project.objects.filter(accepted_by=request.user)
-        started_projects = Project.objects.filter(started_by=request.user)
-        completed_projects = Project.objects.filter(completed_by=request.user)
+        projects = Project.objects.filter(
+            models.Q(accepted_by=request.user) |
+            models.Q(started_by=request.user) |
+            models.Q(completed_by=request.user)
+        ).distinct()
 
-        response_data = {
-            'accepted_projects': ProjectSerializer(accepted_projects, many=True).data,
-            'started_projects': ProjectSerializer(started_projects, many=True).data,
-            'completed_projects': ProjectSerializer(completed_projects, many=True).data,
-        }
+        project_list = [
+            {
+                "id": project.id,
+                "title": project.title,
+                "status": project.status,
+                "priority": project.priority,
+                "category": project.category.id if project.category else None,
+                "created_at": project.created_at.isoformat(),
+            }
+            for project in projects
+        ]
 
-        return Response(response_data)
+        return Response({"projects": project_list})
 
 
 class AttachmentViewSet(viewsets.ModelViewSet):
