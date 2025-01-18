@@ -9,7 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db import models
+from django.db.models import Q
 
 from .models import Project, Attachment, ProjectComment, ProjectStatus, Category, ApplicationLog
 from .serializers import (
@@ -188,16 +188,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Project marked as completed', 'status': project.status})
 
 
-class UserProjectViewSet(viewsets.ViewSet):
+class UserProjectView(APIView):
     permission_classes = [IsAdminUser]
 
-    @action(detail=False, methods=['get'], url_path='my-projects')
-    def my_projects(self, request):
+    def get(self, request):
         user = request.user
         projects = Project.objects.filter(
-            models.Q(accepted_by=user) |
-            models.Q(started_by=user) |
-            models.Q(completed_by=user)
+            Q(accepted_by=user) |
+            Q(started_by=user) |
+            Q(completed_by=user)
         ).distinct()
 
         response_data = {
