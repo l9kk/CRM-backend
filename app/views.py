@@ -188,10 +188,20 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Project marked as completed', 'status': project.status})
 
 
-class UserProjectView(APIView):
+class UserProjectViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = {
+        'status': ['exact'],
+        'category__name': ['icontains'],
+        'priority': ['exact'],
+        'budget': ['gte', 'lte']
+    }
+    search_fields = ['title', 'description', 'sender_name', 'priority']
+    ordering_fields = ['budget', 'created_at', 'updated_at', 'priority']
 
-    def get(self, request):
+    @action(detail=False, methods=['get'], url_path='my-projects')
+    def my_projects(self, request):
         user = request.user
         projects = Project.objects.filter(
             Q(accepted_by=user) |
@@ -199,12 +209,14 @@ class UserProjectView(APIView):
             Q(completed_by=user)
         ).distinct()
 
+        for backend in list(self.filter_backends):
+            projects = backend().filter_queryset(request, projects, self)
+
         response_data = {
             "projects": ProjectSerializer(projects, many=True).data
         }
 
         return Response(response_data)
-
 
 class AttachmentViewSet(viewsets.ModelViewSet):
     """
