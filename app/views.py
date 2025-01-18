@@ -148,9 +148,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project.started_by = request.user
         project.save(update_fields=['status', 'started_by'])
 
+        comment_text = request.data.get(
+            'comment_text',
+            f"Project '{project.title}' "
+            f"has started."
+        )
+
         create_comment_and_notify(
             project=project,
-            comment_text=f"Project '{project.title}' has started.",
+            comment_text=comment_text,
             author_name=request.user.username,
             email_subject=f"Project '{project.title}' Started"
         )
@@ -160,7 +166,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             logger_name="Start project",
             interacted_by=request.user.username
         )
-        return Response({'detail': 'Project started', 'status': project.status})
+        return Response({'detail': 'Project started', 'status': project.status, 'comment_text': comment_text})
 
     @action(detail=True, methods=['post'], url_path='completed')
     def mark_completed(self, request, pk=None):
@@ -172,9 +178,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project.completed_by = request.user
         project.save(update_fields=['status', 'completed_by'])
 
+        comment_text = request.data.get(
+            'comment_text',
+            f"Project '{project.title}' has been completed."
+        )
+
         create_comment_and_notify(
             project=project,
-            comment_text=f"Project '{project.title}' has been completed.",
+            comment_text=comment_text,
             author_name=request.user.username,
             email_subject=f"Project '{project.title}' Completed"
         )
@@ -185,7 +196,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             interacted_by=request.user.username
         )
 
-        return Response({'detail': 'Project marked as completed', 'status': project.status})
+        return Response({'detail': 'Project marked as completed', 'status': project.status, 'comment_text': comment_text})
 
 
 class UserProjectViewSet(viewsets.ViewSet):
