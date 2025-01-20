@@ -138,7 +138,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='start')
     def start_project(self, request, pk=None):
         """
-        Moves the project to IN_PROGRESS after it has been ACCEPTED.
+        Moves the project to IN PROGRESS after it has been ACCEPTED.
         """
         project = get_object_or_404(Project, pk=pk)
         if project.status != ProjectStatus.ACCEPTED:
@@ -170,6 +170,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='completed')
     def mark_completed(self, request, pk=None):
+        """
+        Marks the project as COMPLETED, creates a comment, and sends an email.
+        """
         project = get_object_or_404(Project, pk=pk)
         if project.status != ProjectStatus.IN_PROGRESS:
             return Response({'error': 'Only projects in progress can be marked as completed.'}, status=400)
@@ -200,6 +203,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 
 class UserProjectViewSet(viewsets.ViewSet):
+    """
+    Personal projects for user
+    """
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
@@ -230,21 +236,15 @@ class UserProjectViewSet(viewsets.ViewSet):
         return Response(response_data)
 
 class AttachmentViewSet(viewsets.ModelViewSet):
-    """
-    Admin-only CRUD on attachments.
-    """
     queryset = Attachment.objects.all()
     serializer_class = AttachmentSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
 
     def perform_create(self, serializer):
         attachment = serializer.save()
 
 
 class ProjectCommentViewSet(viewsets.ModelViewSet):
-    """
-    Admin-only CRUD on project comments.
-    """
     queryset = ProjectComment.objects.all().order_by('-created_at')
     serializer_class = ProjectCommentSerializer
     permission_classes = [IsAdminUser]
@@ -278,34 +278,38 @@ class AttachmentDownloadView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request, attachment_id):
+        """
+        GET operation to view files
+        """
         attachment = get_object_or_404(Attachment, pk=attachment_id)
         original_url = attachment.file.url
-        forced_download_url = original_url.replace("/upload/", "/upload/fl_attachment/")
-        forced_download_url = forced_download_url.replace("/raw/upload/", "/raw/upload/fl_attachment/")
         ApplicationLog.objects.create(
             message=f"Attachment '{attachment.file.name}' viewed by {request.user.username}.",
             logger_name="Attachment download",
             interacted_by=request.user.username
         )
-        return redirect(forced_download_url)
+        return redirect(original_url)
 
 
 class CategoryListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        """
+        GET operation to view available categories
+        """
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
 
 
 class ApplicationLogView(APIView):
-    """
-    API endpoint to retrieve logs.
-    """
     permission_classes = [IsAdminUser]
 
     def get(self, request):
+        """
+        GET operation to view all logs
+        """
         queryset = ApplicationLog.objects.all().order_by('-created_at')
 
         interacted_by = request.query_params.get('interacted_by')

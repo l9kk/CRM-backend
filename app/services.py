@@ -7,9 +7,6 @@ logger = logging.getLogger('app')
 
 
 def create_comment_and_notify(project, comment_text, author_name, email_subject):
-    """
-    Creates a ProjectComment, sends an email, and logs the event.
-    """
 
     comment = ProjectComment.objects.create(
         project=project,
