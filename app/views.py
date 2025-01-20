@@ -238,7 +238,7 @@ class UserProjectViewSet(viewsets.ViewSet):
 class AttachmentViewSet(viewsets.ModelViewSet):
     queryset = Attachment.objects.all()
     serializer_class = AttachmentSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         attachment = serializer.save()
